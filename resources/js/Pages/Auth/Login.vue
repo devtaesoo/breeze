@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticationCard from '@/Components/AuthenticationCard.vue';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
 import Checkbox from '@/Components/Checkbox.vue';
@@ -7,6 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import SocialButton from '@/Components/Auth/SocialButton.vue'
 
 defineProps({
     canResetPassword: Boolean,
@@ -27,6 +28,24 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
+
+const socialLogin = (type) => {
+    switch(type){
+        case "kakao":
+            router.get(route('kakao-login'));
+            break;
+        case "naver":
+            break;
+        case "facebook":
+            break;
+        case "google":
+            break;
+        case "apple":
+            break;
+    }
+
+
+}
 </script>
 
 <template>
@@ -37,13 +56,48 @@ const submit = () => {
             <AuthenticationCardLogo />
         </template>
 
+        <template #social>
+            <div class="text-center">
+                <SocialButton
+                    @click="socialLogin('kakao')"
+                    :title="'카카오로 시작하기'"
+                    :color="'yellow'"
+                />
+
+                <SocialButton
+                    @click="socialLogin('naver')"
+                    :title="'네이버로 시작하기'"
+                    :color="'green'"
+                />
+
+                <SocialButton
+                    @click="socialLogin('facebook')"
+                    :title="'페이스북로 시작하기'"
+                    :color="'default'"
+                />
+
+                <SocialButton
+                    @click="socialLogin('google')"
+                    :title="'구글로 시작하기'"
+                    :color="'red'"
+                />
+
+                <SocialButton
+                    @click="socialLogin('apple')"
+                    :title="'애플로 시작하기'"
+                    :color="'dark'"
+                />
+            </div>
+        </template>
+
+
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
             {{ status }}
         </div>
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="이메일 입력" />
                 <TextInput
                     id="email"
                     v-model="form.email"
@@ -57,7 +111,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="비밀번호 입력" />
                 <TextInput
                     id="password"
                     v-model="form.password"
@@ -72,17 +126,17 @@ const submit = () => {
             <div class="block mt-4">
                 <label class="flex items-center">
                     <Checkbox v-model:checked="form.remember" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
+                    <span class="ms-2 text-sm text-gray-600">아이디 저장</span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 <Link v-if="canResetPassword" :href="route('password.request')" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Forgot your password?
+                    비밀번호를 잊으셨어요?
                 </Link>
 
                 <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
+                    로그인하기
                 </PrimaryButton>
             </div>
         </form>
