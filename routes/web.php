@@ -25,7 +25,10 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/oauth/kakao/login', [KakaoController::class, 'kakaoLogin'])->name('kakao-login');
+Route::group(['prefix' => 'oauth'], function (){
+    Route::get('kakao/login', [KakaoController::class, 'kakaoLogin'])->name('kakao-login');
+    Route::get('kakao-callback', [KakaoController::class, 'kakaoLoginCallback']);
+});
 
 
 

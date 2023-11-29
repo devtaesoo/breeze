@@ -17,7 +17,3 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::group(['oauth'], function (){
-    Route::get('kakao/login', [KakaoController::class, 'kakaoLogin'])->name('kakao-login');
-});
