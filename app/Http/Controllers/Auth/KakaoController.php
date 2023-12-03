@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\OAuthProvider;
 use App\Models\OAuthAccount;
-
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Keygen\Keygen;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+
 
 class KakaoController extends Controller
 {
@@ -70,13 +74,13 @@ class KakaoController extends Controller
             //return view('error', $validator->errors()->first());
         }
 
-        $kakaoUser = $this->getKakaoUserInfo();
+        $tokenData = $this->getToken();
 
-        if($kakaoUser['success'] == false && $kakaoUser['code'] != 200){
+        if($tokenData['success'] == false && $tokenData['code'] != 200){
             return ['success' => false, 'message' => '오류가 발생하였습니다.', 'state' => session('kakao-oauth-state')];
         }
 
-        $accessToken = $kakaoUser['data']['access_token'];
+        $accessToken = $tokenData['data']['access_token'];
 
         //token 으로 유저정보 조회
         $provider = OAuthProvider::where('slug', 'kakao')->first();
@@ -86,15 +90,23 @@ class KakaoController extends Controller
             'access_token' => $accessToken
         ])->first();
 
-        //회원가입 or Login
-        if(!$oauthProvider){
+        $kakaoUser = $this->getUserInfo($accessToken);
 
-        }else{
-            //로그인
-        }
+        $user = User::firstOrCreate([
+            'id' => $oauthProvider->user_id
+        ],[
+            'name' => 'kakao'.Keygen::numeric(12),
+            'email' => $kakaoUser['data']->kakao_account->email,
+            'email_verified_at' => now(),
+            'password' => bcrypt(Str::random(32))
+        ]);
+
+        Auth::user($user);
+
+        return Inertia::render('RegisterFollowUp');
     }
 
-    public function getKakaoUserInfo(){
+    public function getToken(){
         $request = request();
         $inputs = $request->input();
 
@@ -136,6 +148,34 @@ class KakaoController extends Controller
                     'expires_in' => $responseData->expires_in,
                     'refresh_token_expires_in' => $responseData->refresh_token_expires_in
                 ]
+            ];
+        }else{
+            $result = [
+                'success' => false,
+                'code' => $response->getStatusCode()
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getUserInfo($accessToken){
+        $url = 'https://kapi.kakao.com/v2/user/me';
+
+        $response = $this->http->request('POST', $url, [
+            'headers' => [
+                'Content-type' => 'application/x-www-form-urlencoded;charset=utf-8',
+                'Authorization' => 'Bearer '.$accessToken
+            ]
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+
+            $result = [
+                'success' => true,
+                'code' => $response->getStatusCode(),
+                'data' => $responseData->kakao_account
             ];
         }else{
             $result = [
