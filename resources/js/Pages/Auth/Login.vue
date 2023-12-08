@@ -31,14 +31,18 @@ const submit = () => {
 
 const socialLogin = (type) => {
     switch(type){
+        case "oauth":
+            router.get(route('oauth-login'));
+            break;
         case "kakao":
             router.get(route('kakao-login'));
             break;
         case "naver":
             break;
         case "facebook":
-            break;
         case "google":
+        case "github":
+            router.get(route('social-login', { provider: type }));
             break;
         case "apple":
             break;
@@ -58,6 +62,12 @@ const socialLogin = (type) => {
 
         <template #social>
             <div class="text-center">
+                <SocialButton
+                    @click="socialLogin('oauth')"
+                    :title="'OAuth 시작하기'"
+                    :color="'yellow'"
+                />
+
                 <SocialButton
                     @click="socialLogin('kakao')"
                     :title="'카카오로 시작하기'"
@@ -85,6 +95,12 @@ const socialLogin = (type) => {
                 <SocialButton
                     @click="socialLogin('apple')"
                     :title="'애플로 시작하기'"
+                    :color="'dark'"
+                />
+
+                <SocialButton
+                    @click="socialLogin('github')"
+                    :title="'github 시작하기'"
                     :color="'dark'"
                 />
             </div>
