@@ -3,9 +3,13 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Laravel\Socialite\Facades\Socialite;
 
 use App\Http\Controllers\Auth\KakaoController;
+use App\Http\Controllers\Auth\OAuthController;
+use App\Http\Controllers\Auth\SocialController;
 /*
+
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
@@ -26,11 +30,15 @@ Route::get('/', function () {
 });
 
 Route::group(['prefix' => 'oauth'], function (){
-    Route::get('kakao/login', [KakaoController::class, 'kakaoLogin'])->name('kakao-login');
-    Route::get('kakao-callback', [KakaoController::class, 'kakaoLoginCallback']);
+    Route::get('/kakao/login', [KakaoController::class, 'kakaoLogin'])->name('kakao-login');
+    Route::get('/kakao-callback', [KakaoController::class, 'kakaoLoginCallback']);
+
+    Route::get('/redirect', [OAuthController::class, 'redirect'])->name('oauth-login');
+    Route::post('/callback', [OAuthController::class, 'callback']);
+
+    Route::get('/login/{provider}', [SocialController::class, 'redirect'])->name('social-login');
+    Route::get('/{provider}-callback', [SocialController::class, 'callback']);
 });
-
-
 
 Route::middleware([
     'auth:sanctum',
@@ -44,4 +52,9 @@ Route::middleware([
     Route::get('/board', function () {
         return Inertia::render('Board/Index');
     })->name('board');
+
+    Route::get('/registration-followup', function () {
+        return Inertia::render('Auth/Followup/Index');
+    })->name('followup');
 });
+
