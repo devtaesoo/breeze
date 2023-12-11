@@ -53,7 +53,14 @@ class SocialController extends Controller
                     ];
                     break;
                 case 'google':
-                    $data = [];
+                    $random = Keygen::alphanum(12)->generate();
+
+                    $data = [
+                        'name' => 'google'.$random,
+                        'email' => $socialUser->email,
+                        'password' => md5($socialUser->id),
+                        'profile_photo_path' => $socialUser->avatar
+                    ];
                     break;
                 case 'facebook':
                     $data = [];
@@ -61,24 +68,23 @@ class SocialController extends Controller
             }
 
             $user = User::firstOrCreate([
-                'email' => $socialUser->email,
-                'name' => $socialUser->nickname,
+                'email' => $socialUser->email
             ], $data);
+
+            $token = $user->createToken('AUTH_TOKEN')->plainTextToken;
 
             $user->socialAccounts()->updateOrCreate([
                 'provider' => $provider,
                 'provider_user_id' => $socialUser->getId(),
             ], [
-                'github_token' => $socialUser->token,
-                'github_refresh_token' => $socialUser->refreshToken
+                'access_token' => $token,
+                'refresh_token' => null
             ]);
         }
 
-        $token = $user->createToken('AUTH_TOKEN')->plainTextToken;
+        Auth::login($user);
 
-        return Inertia::render('Auth/Followup/Index', [
-            'access_token' => $token
-        ]);
+        return Inertia::render('Auth/Followup/Index');
     }
 
     public function index()
